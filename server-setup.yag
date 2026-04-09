@@ -1,0 +1,60 @@
+{{/* --- Set up Channel and role searches --- */}}
+{{/* Channels */}}
+{{$receptionChannel := "reception"}}
+{{$waitingRoomChannel := "waiting-room"}}
+{{$rulesChannel := "rules"}}
+{{$generalChannel := "general"}}
+
+{{/* Roles */}}
+{{$unverifiedRole := "Unverified"}}
+{{$memberRole := "Member"}}
+{{$moderatorRole := "Moderator"}}
+
+{{/* --- Initialize the ID's --- */}}
+{{$receptionChannelID := 0}} {{$waitingRoomChannelID := 0}} {{$rulesChannelID := 0}} {{$generalChannelID := 0}} 
+{{$unverifiedRoleID := 0}} {{$memberRoleID := 0}} {{$moderatorRoleID := 0}}
+
+{{/* Set the channel ID's */}}
+{{range .Guild.Channels}}
+    {{if eq (lower .Name) $receptionChannel}} {{$receptionChannelID = .ID}} {{end}}
+    {{if eq (lower .Name) $waitingRoomChannel}} {{$waitingRoomChannelID = .ID}} {{end}}
+    {{if eq (lower .Name) $rulesChannel}} {{$rulesChannelID = .ID}} {{end}}
+    {{if eq (lower .Name) $generalChannel}} {{$generalChannelID = .ID}} {{end}}
+{{end}}
+
+{{/* Set the role ID's */}}
+{{range .Guild.Roles}}
+    {{if eq .Name $unverifiedRole}} {{$unverifiedRoleID = .ID}} {{end}}
+    {{if eq .Name $memberRole}} {{$memberRoleID = .ID}} {{end}}
+    {{if eq .Name $moderatorRole}} {{$moderatorRoleID = .ID}} {{end}}
+{{end}}
+
+{{/* --- Check to see if any of the require channels or roles are missing --- */}}
+{{$errors := cslice}}
+{{if not $receptionChannelID}} {{$errors = $errors.Append (joinStr "" "• Missing channel: `# " $receptionChannel "`") }} {{end}}
+{{if not $waitingRoomChannelID}} {{$errors = $errors.Append (joinStr "" "• Missing channel: `# " $waitingRoomChannel "`") }} {{end}}
+{{if not $rulesChannelID}} {{$errors = $errors.Append (joinStr "" "• Missing channel: `# " $rulesChannel "`") }} {{end}}
+{{if not $generalChannelID}} {{$errors = $errors.Append (joinStr "" "• Missing channel: `# " $generalChannel "`") }} {{end}}
+
+{{if not $unverifiedRoleID}} {{$errors = $errors.Append (joinStr "" "• Missing role: `@ " $unverifiedRole "`") }} {{end}}
+{{if not $memberRoleID}} {{$errors = $errors.Append (joinStr "" "• Missing role: `@ " $memberRole "`") }} {{end}}
+{{if not $moderatorRoleID}} {{$errors = $errors.Append (joinStr "" "• Missing role: `@ " $moderatorRole "`") }} {{end}}
+
+{{if eq (len $errors) 0}}
+    {{/* Add channel and role ID's to the database */}}
+    {{dbSet 0 $receptionChannel $receptionChannelID}}
+    {{dbSet 0 $waitingRoomChannel $waitingRoomChannelID}}
+    {{dbSet 0 $rulesChannel $rulesChannelID}}
+    {{dbSet 0 $generalChannel $generalChannelID}}
+    {{dbSet 0 $unverifiedRole $unverifiedRoleID}}
+
+    {{dbSet 0 "server_setup_complete" $unverifiedRoleID}}
+    
+    ✅ **Prerequisites Met!**
+    Configuration has been locked into the database.
+{{else}}
+    ❌ **Setup Failed: Prerequisites Missing**
+    Please create the following items exactly as named and try again:
+    {{range $errors}}{{.}}
+    {{end}}
+{{end}}
