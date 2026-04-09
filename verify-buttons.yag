@@ -1,0 +1,26 @@
+{{/* CC1 verify-panel for server id 1490051882104914214 */}}
+
+{{ $staffChannelID := 1490051883471999086 }}
+{{/* Note for future release to retrieve id's from database stored with setup CC */}}
+{{/* Replace with your actual staff channel ID as a number, no quotes */}}
+
+{{ if ne .Channel.ID $staffChannelID }}
+  {{ ephemeralResponse }}
+  This command can only be used in the staff channel.
+{{ else }}
+   {{ $yesButton := cbutton
+    "label" "Verify New Member"
+    "custom_id" "verify-accept"
+    "style" "success"
+  }}
+  {{ $noButton := cbutton
+    "label" "Reject"
+    "custom_id" "verify-reject"
+    "style" "danger"
+  }}
+  {{ $msg := complexMessage
+    "buttons" (cslice $yesButton $noButton)
+  }}
+  {{ sendMessage nil $msg }}
+  {{ ephemeralResponse }}
+{{ end }}
